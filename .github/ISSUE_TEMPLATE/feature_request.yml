@@ -1,0 +1,23 @@
+name: Cost metric or report request
+description: Request a new cost metric, breakdown, forecast or review section
+labels: [enhancement]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Business question
+      description: The spending decision this would inform, and who makes it (finance, engineering, account team).
+    validations:
+      required: true
+  - type: textarea
+    id: definition
+    attributes:
+      label: Proposed definition
+      description: The FOCUS columns used, the cost basis (billed, effective or amortized), grain, filters and time window.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance check
+      description: A total the result can be reconciled against, such as the invoice total for the period.

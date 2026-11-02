@@ -1,0 +1,24 @@
+name: Bug report
+description: A model, metric, forecast or report produced wrong numbers or failed
+labels: [bug]
+body:
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Layer
+      options: [FOCUS ingestion, conformance checks, synthetic extension, dbt staging, dbt marts, cost metrics, forecasting, anomaly detection, commitment planning, monthly review, web app]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+      description: Include the metric, the billing period, the filter and the value you saw versus the value you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command and environment
+      description: The exact command, the dbt target (duckdb or bigquery) and the data source (FOCUS sample or synthetic seed).
+      render: shell

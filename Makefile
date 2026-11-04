@@ -1,4 +1,4 @@
-.PHONY: install lock lint format typecheck test audit check sample clean
+.PHONY: install lock lint format typecheck test audit check sample data clean
 
 install:
 	pip install -r requirements-dev.lock
@@ -26,7 +26,12 @@ audit:
 
 sample:
 	finops download
-	finops check
+	finops check data/focus-sample/focus_sample_100000.csv.gz
+
+data:
+	finops load-sample
+	finops synthesize
+	finops verify
 
 check: lint typecheck test
 

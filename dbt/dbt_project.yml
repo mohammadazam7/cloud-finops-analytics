@@ -1,0 +1,19 @@
+name: finops
+version: "0.2.0"
+config-version: 2
+profile: finops
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: target
+clean-targets: [target, dbt_packages]
+
+models:
+  finops:
+    staging:
+      +materialized: view
+      +schema: staging
+
+flags:
+  send_anonymous_usage_stats: false

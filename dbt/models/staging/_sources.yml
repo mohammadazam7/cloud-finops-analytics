@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Raw zone written by `finops load-sample` and `finops synthesize`. On DuckDB each table
+      is read from its Parquet file; on BigQuery a load job writes the same tables to the
+      `raw` dataset. Neither source is refreshed on a schedule (one is a fixed public
+      sample, the other is generated), so no freshness thresholds are set yet; they belong
+      on the real billing export when one is connected.
+    schema: raw
+    config:
+      external_location: "{{ env_var('FINOPS_RAW', '../data/raw') }}/{name}/{name}.parquet"
+    tables:
+      - name: focus_sample
+        description: FinOps Foundation FOCUS 1.0 sample, normalised by `finops load-sample` (CC BY 4.0).
+      - name: synthetic_charges
+        description: Seeded synthetic 24-month billing history in FOCUS columns, every row x_Synthetic.
+      - name: synthetic_anomalies
+        description: Ground truth for the cost spikes planted in synthetic_charges.

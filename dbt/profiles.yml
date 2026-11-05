@@ -1,0 +1,18 @@
+# Two targets for the same models: DuckDB for local runs and CI, BigQuery for deployment.
+# BigQuery credentials are read from the environment and are never committed.
+finops:
+  target: "{{ env_var('FINOPS_TARGET', 'duckdb') }}"
+  outputs:
+    duckdb:
+      type: duckdb
+      path: "{{ env_var('FINOPS_DUCKDB', '../data/warehouse.duckdb') }}"
+      threads: 4
+    bigquery:
+      type: bigquery
+      method: service-account
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS', '') }}"
+      project: "{{ env_var('FINOPS_GCP_PROJECT', 'unset') }}"
+      dataset: "{{ env_var('FINOPS_DATASET', 'finops') }}"
+      location: "{{ env_var('FINOPS_LOCATION', 'US') }}"
+      threads: 8
+      job_execution_timeout_seconds: 300

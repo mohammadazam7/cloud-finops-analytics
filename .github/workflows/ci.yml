@@ -44,3 +44,22 @@ jobs:
           cache: pip
       - run: pip install -r requirements-dev.lock && pip install -e . --no-deps
       - run: pytest --cov=finops_analytics --cov-report=term-missing
+
+  models:
+    name: dbt models (DuckDB)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-dev.lock && pip install -e . --no-deps
+      - name: Build the raw zone
+        run: |
+          finops load-sample
+          finops synthesize --days 120
+          finops verify
+      - name: Build and test every model
+        working-directory: dbt
+        run: dbt build --profiles-dir .

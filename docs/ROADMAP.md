@@ -3,7 +3,7 @@
 Each milestone lands on its own branch with tests and is merged when complete. Checked
 items are done.
 
-- [ ] **M1: Foundation and billing data** (Nov 2 to Nov 5). Package layout, CI, a
+- [x] **M1: Foundation and billing data** (Nov 2 to Nov 5). Package layout, CI, a
       download script for the FOCUS sample data, ingestion with conformance checks
       against the FOCUS specification, and a seeded synthetic multi-account history
       that follows the same schema.

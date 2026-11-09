@@ -1,0 +1,101 @@
+version: 2
+
+models:
+  - name: dim_service
+    description: One row per provider and service, filed under its most common service category.
+    columns:
+      - name: service_key
+        data_tests: [unique, not_null]
+      - name: service_category
+        data_tests: [not_null]
+
+  - name: dim_region
+    columns:
+      - name: region_key
+        data_tests: [unique, not_null]
+
+  - name: dim_account
+    description: >
+      One row per billing account and sub-account. Team and environment come from the
+      synthetic sub-account names (team-environment) and are null for the FOCUS sample.
+    columns:
+      - name: account_key
+        data_tests: [unique, not_null]
+
+  - name: dim_date
+    columns:
+      - name: date_day
+        data_tests: [unique, not_null]
+
+  - name: fct_cost_daily
+    description: >
+      Daily billed, effective, list and contracted cost by account, service, region and
+      charge category. Incremental with a lookback window; partitioned by day and clustered
+      by service and account on BigQuery. The contract is enforced.
+    config:
+      contract:
+        enforced: true
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [charge_date, account_key, service_key, region_key, charge_category, source_dataset]
+    columns:
+      - name: charge_date
+        data_type: date
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_day
+      - name: account_key
+        data_type: string
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_account')
+                field: account_key
+      - name: service_key
+        data_type: string
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_service')
+                field: service_key
+      - name: region_key
+        data_type: string
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_region')
+                field: region_key
+      - name: charge_category
+        data_type: string
+      - name: source_dataset
+        data_type: string
+      - name: is_synthetic
+        data_type: boolean
+      - name: line_count
+        data_type: int64
+      - name: billed_cost
+        data_type: numeric(38, 9)
+      - name: effective_cost
+        data_type: numeric(38, 9)
+      - name: list_cost
+        data_type: numeric(38, 9)
+      - name: contracted_cost
+        data_type: numeric(38, 9)
+
+  - name: fct_commitment_utilization
+    description: >
+      Daily use of each commitment: used and unused amortized cost, covered and eligible
+      list cost, utilization and coverage.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [charge_date, provider_name, commitment_discount_id]
+    columns:
+      - name: utilization
+        description: used_cost / (used_cost + unused_cost); null when nothing was committed that day.
+      - name: coverage
+        description: covered_list_cost / eligible_list_cost; null when eligible list cost is not positive.

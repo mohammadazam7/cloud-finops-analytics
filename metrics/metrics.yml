@@ -1,0 +1,92 @@
+# Governed definitions of every cost metric. This file is the single source of truth:
+# the SQL in finops_analytics.metrics and docs/metric_dictionary.md are derived from it.
+# Change a definition here, in one pull request, and nowhere else.
+#
+# source: cost        marts.fct_cost_daily joined to the service, account and region dimensions
+#         commitment  marts.agg_commitment_daily (one row per day and provider)
+# kind:   sum         value = sum(numerator)
+#         ratio       value = sum(numerator) / sum(denominator)
+#         savings     value = 1 - sum(numerator) / sum(denominator)
+metrics:
+  - name: effective_cost
+    label: Effective cost
+    source: cost
+    kind: sum
+    numerator: effective_cost
+    unit: USD
+    better: lower
+    owner: FinOps
+    description: >
+      Amortized cost after negotiated discounts, with commitment purchases spread over
+      the days they cover. The basis for showback and chargeback.
+
+  - name: billed_cost
+    label: Billed cost
+    source: cost
+    kind: sum
+    numerator: billed_cost
+    unit: USD
+    better: lower
+    owner: Finance
+    description: >
+      Cost as it appears on the invoice, with commitment purchases charged when bought.
+      Used to reconcile against invoices, not to compare teams.
+
+  - name: list_cost
+    label: List cost
+    source: cost
+    kind: sum
+    numerator: list_cost
+    unit: USD
+    better: neutral
+    owner: FinOps
+    description: Cost at public list prices before any discount or commitment.
+
+  - name: effective_savings_rate
+    label: Effective savings rate
+    source: cost
+    kind: savings
+    numerator: effective_cost
+    denominator: list_cost
+    unit: share
+    better: higher
+    owner: FinOps
+    description: >
+      Share of list cost avoided through negotiated discounts and commitments, across
+      all spend.
+
+  - name: commitment_utilization
+    label: Commitment utilization
+    source: commitment
+    kind: ratio
+    numerator: used_cost
+    denominator: committed_cost
+    unit: share
+    better: higher
+    owner: FinOps
+    description: >
+      Share of committed spend (savings plans and reservations) that covered usage
+      rather than going unused.
+
+  - name: unused_commitment_cost
+    label: Unused commitment cost
+    source: commitment
+    kind: sum
+    numerator: unused_cost
+    unit: USD
+    better: lower
+    owner: FinOps
+    description: Committed spend that no usage consumed.
+
+  - name: commitment_coverage
+    label: Commitment coverage
+    source: commitment
+    kind: ratio
+    numerator: covered_list_cost
+    denominator: eligible_list_cost
+    unit: share
+    better: higher
+    owner: FinOps
+    description: >
+      Share of eligible compute usage, at list price, that ran under a commitment. Days
+      whose eligible list cost is not positive are left out.

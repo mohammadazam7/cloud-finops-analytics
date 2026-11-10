@@ -6,9 +6,32 @@ Cloud cost and consumption analytics on billing data in the FinOps Foundation's 
 format: where the money goes, where it is heading, why it moved, and how much a
 commitment would save.
 
-> **Status:** in development. The project foundation is in place; see the
-> [roadmap](docs/ROADMAP.md) for milestone dates. Results will be published here only
-> once they have been measured.
+> **Status:** in development. FOCUS ingestion, the dbt cost models and the governed
+> metric layer are in place; forecasting and anomaly detection are next. See the
+> [roadmap](docs/ROADMAP.md) for milestone dates.
+
+## Results at a glance
+
+Measured on the seeded synthetic 24-month history (labelled synthetic, not a real bill)
+plus the FinOps Foundation FOCUS sample:
+
+| What | Value |
+|---|---|
+| Synthetic effective cost, 24 months | 5,921,698 USD |
+| Synthetic effective savings rate (1 minus effective over list cost) | 37.7% |
+| AWS savings plan utilization / coverage | 99.8% / 83.6% |
+| Unused AWS commitment | 3,916 USD |
+| dbt build (models, contracts and tests) | 42 of 42 pass |
+
+## What this demonstrates
+
+- Billing data modelled to the FOCUS specification, with conformance checks on input.
+- A dbt project with typed staging, enforced contracts, an incremental fact with a
+  restatement window, and tests that reconcile marts back to source.
+- A governed metric layer: one YAML definition per metric, compiled to SQL at any
+  grain, with ratios always computed from additive parts.
+- Decisions recorded as ADRs: [rollups from additive parts](docs/adr/0001-roll-up-from-additive-parts.md)
+  and [the incremental lookback](docs/adr/0002-incremental-cost-fact-with-lookback.md).
 
 ## Overview
 
@@ -77,6 +100,20 @@ make check
 finops download                     # FOCUS sample, pinned commit, checksum verified
 finops check data/focus-sample/focus_sample_100000.csv.gz
 ```
+
+Build the warehouse and query a governed metric:
+
+```bash
+make data                                  # FOCUS sample and synthetic history
+make models                                # dbt build on DuckDB
+finops metric commitment_utilization --by provider
+finops metric effective_cost --by month --by service_category
+finops metric effective_cost --by team --sql   # print the SQL instead
+```
+
+Definitions live in [metrics/metrics.yml](metrics/metrics.yml); the
+[metric dictionary](docs/metric_dictionary.md) and the
+[architecture notes](docs/architecture.md) explain each one.
 
 `finops check` reports every rule a file breaks, with the row count, example values and
 whether the problem can be repaired safely. On the FinOps Foundation's 100,000-row

@@ -1,4 +1,4 @@
-.PHONY: install lock lint format typecheck test audit check sample data clean
+.PHONY: install lock lint format typecheck test audit check sample data models clean
 
 install:
 	pip install -r requirements-dev.lock
@@ -32,6 +32,9 @@ data:
 	finops load-sample
 	finops synthesize
 	finops verify
+
+models:
+	cd dbt && dbt build --profiles-dir .
 
 check: lint typecheck test
 

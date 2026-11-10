@@ -9,6 +9,9 @@ import logging
 from collections.abc import Sequence
 from pathlib import Path
 
+import duckdb
+
+from finops_analytics import metrics as metric_layer
 from finops_analytics import raw_zone
 from finops_analytics.focus import check, load_csv, normalise
 from finops_analytics.sample_data import ATTRIBUTION, SAMPLE_100K, download
@@ -37,7 +40,30 @@ def _parser() -> argparse.ArgumentParser:
     sy.add_argument("--days", type=int, default=SyntheticConfig.days)
     v = sub.add_parser("verify", help="check raw zone files against their manifest")
     v.add_argument("--out", type=Path, default=Path("data/raw"))
+    m = sub.add_parser("metrics", help="write the metric dictionary from metrics/metrics.yml")
+    m.add_argument("--out", type=Path, default=Path("docs/metric_dictionary.md"))
+    q = sub.add_parser("metric", help="compute one governed metric from the warehouse")
+    q.add_argument("name", help="metric name from metrics/metrics.yml")
+    q.add_argument("--by", action="append", default=[], help="dimension to group by")
+    q.add_argument("--warehouse", type=Path, default=Path("data/warehouse.duckdb"))
+    q.add_argument("--sql", action="store_true", help="print the SQL instead of running it")
     return p
+
+
+def _metric(name: str, by: Sequence[str], warehouse: Path, show_sql: bool) -> int:
+    spec = metric_layer.load()
+    if name not in spec:
+        print(f"unknown metric {name!r}; known: {', '.join(spec)}")
+        return 2
+    query = metric_layer.sql(spec[name], group_by=by)
+    if show_sql:
+        print(query)
+        return 0
+    with duckdb.connect(str(warehouse), read_only=True) as con:
+        rows = con.sql(query).fetchall()
+    for row in rows:
+        print("\t".join(str(v) for v in row))
+    return 0
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -68,6 +94,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         print(f"synthetic_charges {billing.charges.num_rows:,} rows (synthetic)")
         return 0
+    if args.command == "metrics":
+        args.out.write_text(metric_layer.dictionary(metric_layer.load()), encoding="utf-8")
+        print(args.out)
+        return 0
+    if args.command == "metric":
+        return _metric(args.name, args.by, args.warehouse, args.sql)
     if args.command == "verify":
         problems = raw_zone.verify(args.out)
         for p in problems:

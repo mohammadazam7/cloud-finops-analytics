@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: stg_billing_charges
+    description: >
+      Every billing line from the FOCUS sample and the synthetic history in one typed,
+      snake_case shape. `is_synthetic` and `source_dataset` say where each row came from.
+    columns:
+      - name: billing_account_id
+        data_tests: [not_null]
+      - name: billed_cost
+        data_tests: [not_null]
+      - name: effective_cost
+        data_tests: [not_null]
+      - name: billing_currency
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [USD]
+      - name: charge_category
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [Usage, Purchase, Tax, Credit, Adjustment]
+      - name: charge_period_start
+        data_tests: [not_null]
+      - name: source_dataset
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [focus_sample, synthetic_charges]
+
+  - name: stg_cost_anomalies
+    description: Planted cost spikes in the synthetic history; one row per spike.
+    columns:
+      - name: sub_account_id
+        data_tests: [not_null]
+      - name: factor
+        data_tests: [not_null]

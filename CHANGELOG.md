@@ -5,6 +5,17 @@ All notable changes are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+- dbt project on DuckDB and BigQuery targets: typed staging over the FOCUS sample and the
+  synthetic history, keyed intermediate charges, service, region, account and date
+  dimensions, an incremental `fct_cost_daily` with an enforced contract and a restatement
+  window, `fct_commitment_utilization` and `agg_commitment_daily`, with reconciliation
+  and bounds tests.
+- Governed metric layer: seven cost metrics in `metrics/metrics.yml`, compiled to SQL at
+  any grain (`finops metric`), and a generated metric dictionary (`finops metrics`).
+- Architecture notes and ADRs on rollups from additive parts and the incremental
+  lookback.
+
 ## [0.1.0] - 2026-11-04
 
 ### Added

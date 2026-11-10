@@ -7,7 +7,7 @@ items are done.
       download script for the FOCUS sample data, ingestion with conformance checks
       against the FOCUS specification, and a seeded synthetic multi-account history
       that follows the same schema.
-- [ ] **M2: Cost models and metrics** (Nov 6 to Nov 10). dbt project on DuckDB and
+- [x] **M2: Cost models and metrics** (Nov 6 to Nov 10). dbt project on DuckDB and
       BigQuery targets: staging, intermediate and mart layers; incremental daily cost
       fact with partitioning and clustering; tests and contracts; governed cost metrics
       reconciled to invoice totals.

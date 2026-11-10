@@ -98,4 +98,21 @@ models:
       - name: utilization
         description: used_cost / (used_cost + unused_cost); null when nothing was committed that day.
       - name: coverage
-        description: covered_list_cost / eligible_list_cost; null when eligible list cost is not positive.
+        description: >
+          This commitment's share of the provider's eligible list cost that day; null when
+          eligible list cost is not positive. Total coverage is the sum across commitments;
+          use agg_commitment_daily to roll it up.
+
+  - name: agg_commitment_daily
+    description: >
+      Commitment use and coverage per day and provider. Every measure is additive, so the
+      metric layer can roll utilization and coverage up to any period.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [charge_date, provider_name]
+    columns:
+      - name: eligible_list_cost
+        description: List cost of usage that a commitment could have covered.
+        data_tests:
+          - not_null

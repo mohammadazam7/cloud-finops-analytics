@@ -5,6 +5,8 @@ All notable changes are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-11
+
 ### Added
 - dbt project on DuckDB and BigQuery targets: typed staging over the FOCUS sample and the
   synthetic history, keyed intermediate charges, service, region, account and date
@@ -31,5 +33,6 @@ All notable changes are recorded here. The format follows
 - Project foundation: package layout, CI (ruff, mypy in strict mode, pytest on Python
   3.11 to 3.13), roadmap, issue and pull request templates.
 
-[Unreleased]: https://github.com/mohammadazam7/cloud-finops-analytics/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/mohammadazam7/cloud-finops-analytics/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/mohammadazam7/cloud-finops-analytics/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/mohammadazam7/cloud-finops-analytics/releases/tag/v0.1.0

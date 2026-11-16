@@ -39,9 +39,11 @@ What this says:
 - The weekly pattern is most of the signal. Ignoring it costs four times the error.
 - Adding the recent trend removes the bias (`seasonal_naive` runs about 1% low on a
   growing bill) but barely moves WAPE.
-- The 80% intervals cover about 75%. They are sized on 24 folds, which is few, and the
-  planted cost spikes fall unevenly between the two halves. The intervals are too narrow
-  as they stand and should not be presented as 80% until this is fixed.
+- The 80% intervals cover about 75%. The planted cost spikes are not the reason: for
+  `seasonal_drift`, coverage is 74.9% on test days with no planted anomaly and 70.8% on
+  days with one, and anomaly days are only 3.4% of the test days. The intervals are sized
+  on 24 folds, which is few for a tail quantile. They are too narrow as they stand and
+  should not be presented as 80% until they are widened or sized on more folds.
 
 These numbers describe generated data with a known weekly cycle and growth rate, so they
 show the method works, not how well real bills can be forecast.

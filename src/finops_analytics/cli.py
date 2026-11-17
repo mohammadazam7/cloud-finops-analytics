@@ -84,7 +84,8 @@ def _forecast(args: argparse.Namespace) -> int:
     print(f"{len(series)} days, {scores[0].folds} folds, horizon {args.horizon} days")
     print(f"{'model':<16} {'WAPE':>7} {'bias':>8} {'coverage at ' + format(args.level, '.0%'):>16}")
     for s in scores:
-        print(f"{s.model:<16} {s.wape:>7.1%} {s.bias:>+8.1%} {s.coverage:>16.1%}")
+        covered = "too few folds" if s.coverage is None else format(s.coverage, ".1%")
+        print(f"{s.model:<16} {s.wape:>7.1%} {s.bias:>+8.1%} {covered:>16}")
     return 0
 
 

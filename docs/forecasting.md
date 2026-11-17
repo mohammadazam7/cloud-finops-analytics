@@ -11,9 +11,12 @@ the numbers below on the same folds to be kept.
 - **WAPE** (total absolute error over total actual spend) is the headline error. A mean
   of daily percentage errors would let small days dominate.
 - **Bias** is total error over total spend; negative means the forecast ran high.
-- **Prediction intervals** are the empirical quantiles of backtest errors at each step
-  ahead. Their coverage is measured on the later half of the folds, which the interval
-  never saw, so it is an out-of-sample number.
+- **Prediction intervals** are split-conformal: at each step ahead, the width is a
+  quantile of past absolute errors, taken at rank `ceil((n + 1) * level)` of `n` to
+  allow for the sample being finite.
+- **Coverage** is measured the way the intervals would be used. Each fold's interval is
+  sized only from earlier folds whose whole 28 days had already happened at that fold's
+  origin, and a fold is scored once at least 20 such folds exist.
 
 ## Baselines
 
@@ -30,20 +33,29 @@ Reproduce with `finops forecast --warehouse data/warehouse.duckdb`.
 
 | Model | WAPE | Bias | Coverage of the 80% interval |
 |---|---|---|---|
-| `seasonal_drift` | 2.0% | -0.0% | 74.7% |
-| `seasonal_naive` | 2.1% | +0.9% | 73.7% |
-| `naive_last` | 8.4% | -6.1% | 70.6% |
+| `seasonal_drift` | 2.0% | -0.0% | 83.5% |
+| `seasonal_naive` | 2.1% | +0.9% | 82.0% |
+| `naive_last` | 8.4% | -6.1% | 75.3% |
+
+WAPE and bias are over all 49 folds; coverage is over the last 26, the ones with enough
+earlier folds to size an interval.
 
 What this says:
 
 - The weekly pattern is most of the signal. Ignoring it costs four times the error.
 - Adding the recent trend removes the bias (`seasonal_naive` runs about 1% low on a
   growing bill) but barely moves WAPE.
-- The 80% intervals cover about 75%. The planted cost spikes are not the reason: for
-  `seasonal_drift`, coverage is 74.9% on test days with no planted anomaly and 70.8% on
-  days with one, and anomaly days are only 3.4% of the test days. The intervals are sized
-  on 24 folds, which is few for a tail quantile. They are too narrow as they stand and
-  should not be presented as 80% until they are widened or sized on more folds.
+- The intervals for the two seasonal models cover a little more than the 80% asked for,
+  which is the side a conformal interval is meant to err on.
+- `naive_last` still under-covers at 75.3%. Its errors grow as the bill grows, so past
+  errors understate the next ones; no interval built from past errors fixes a forecast
+  that is biased in a way that keeps getting worse.
+
+An earlier version of this page reported about 75% coverage for the seasonal models. Two
+things were wrong with how that was measured, not with the forecasts: the quantiles had
+no finite-sample correction, and the folds were split into halves, so the intervals
+were sized on only 24 folds. Planted cost spikes were checked and ruled out as the
+cause at the time (coverage was 74.9% on days without one and 70.8% on days with one).
 
 These numbers describe generated data with a known weekly cycle and growth rate, so they
 show the method works, not how well real bills can be forecast.

@@ -47,9 +47,11 @@ What this says:
   growing bill) but barely moves WAPE.
 - The intervals for the two seasonal models cover a little more than the 80% asked for,
   which is the side a conformal interval is meant to err on.
-- `naive_last` still under-covers at 75.3%. Its errors grow as the bill grows, so past
-  errors understate the next ones; no interval built from past errors fixes a forecast
-  that is biased in a way that keeps getting worse.
+- `naive_last` still under-covers at 75.3%. Its absolute errors are about 8% larger in
+  the 26 scored folds than in the 23 before them (2% for `seasonal_drift`), so past
+  errors understate the next ones. That explains part of the gap; the rest has not been
+  tracked down. An interval built from past errors cannot repair a forecast whose
+  errors keep growing.
 
 An earlier version of this page reported about 75% coverage for the seasonal models. Two
 things were wrong with how that was measured, not with the forecasts: the quantiles had

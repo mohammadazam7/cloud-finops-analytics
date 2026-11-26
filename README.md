@@ -7,7 +7,8 @@ format: where the money goes, where it is heading, why it moved, and how much a
 commitment would save.
 
 > **Status:** in development. FOCUS ingestion, the dbt cost models and the governed
-> metric layer are in place; forecasting and anomaly detection are next. See the
+> metric layer are in place; forecasting and anomaly detection are being built, with
+> attribution of anomalies to their drivers next. See the
 > [roadmap](docs/ROADMAP.md) for milestone dates.
 
 ## Results at a glance
@@ -22,6 +23,16 @@ plus the FinOps Foundation FOCUS sample:
 | AWS savings plan utilization / coverage | 99.8% / 83.6% |
 | Unused AWS commitment | 3,916 USD |
 | dbt build (models, contracts and tests) | 42 of 42 pass |
+| Planted cost anomalies found (synthetic) | 17 of 18 |
+| Anomaly incidents raised that match a planted anomaly | 17 of 21 |
+
+The anomaly detector compares each day's cost per account, service and region with a
+robust baseline (median and median absolute deviation of the previous 28 days). All
+four incidents that match no planted anomaly are lasting step changes, where a series'
+cost rose and stayed up (CloudWatch in one account went from about 10 to 50 USD a day);
+the generator plants those as workloads moving between services, and they are worth an
+alert even though they are not spikes. The one planted anomaly it missed is on a series
+costing 0.22 USD a day, where the whole spike is under the 1 USD a day minimum excess.
 
 ## What this demonstrates
 

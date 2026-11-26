@@ -11,6 +11,7 @@ from pathlib import Path
 
 import duckdb
 
+from finops_analytics import forecast as forecasting
 from finops_analytics import metrics as metric_layer
 from finops_analytics import raw_zone
 from finops_analytics.focus import check, load_csv, normalise
@@ -47,7 +48,45 @@ def _parser() -> argparse.ArgumentParser:
     q.add_argument("--by", action="append", default=[], help="dimension to group by")
     q.add_argument("--warehouse", type=Path, default=Path("data/warehouse.duckdb"))
     q.add_argument("--sql", action="store_true", help="print the SQL instead of running it")
+
+    f = sub.add_parser("forecast", help="backtest the baseline forecasters on daily spend")
+    f.add_argument("--service", help="service name; all services together when omitted")
+    f.add_argument("--warehouse", type=Path, default=Path("data/warehouse.duckdb"))
+    f.add_argument("--horizon", type=int, default=28, help="days ahead to forecast")
+    f.add_argument("--initial", type=int, default=365, help="days of history before fold 1")
+    f.add_argument("--level", type=float, default=0.8, help="prediction interval level")
     return p
+
+
+def daily_spend(warehouse: Path, service: str | None) -> list[float]:
+    """Synthetic effective cost per day, oldest first, for one service or all of them."""
+    query = (
+        "select f.charge_date, cast(sum(f.effective_cost) as double) "
+        "from marts.fct_cost_daily as f join marts.dim_service as s using (service_key) "
+        "where f.is_synthetic and (? is null or s.service_name = ?) group by 1 order by 1"
+    )
+    with duckdb.connect(str(warehouse), read_only=True) as con:
+        return [float(row[1]) for row in con.execute(query, [service, service]).fetchall()]
+
+
+def _forecast(args: argparse.Namespace) -> int:
+    series = daily_spend(args.warehouse, args.service)
+    if not series:
+        print(f"no synthetic spend found for service {args.service!r}")
+        return 2
+    try:
+        scores = forecasting.compare(
+            series, horizon=args.horizon, initial=args.initial, level=args.level
+        )
+    except forecasting.ForecastError as err:
+        print(f"cannot backtest: {err}")
+        return 2
+    print(f"{len(series)} days, {scores[0].folds} folds, horizon {args.horizon} days")
+    print(f"{'model':<16} {'WAPE':>7} {'bias':>8} {'coverage at ' + format(args.level, '.0%'):>16}")
+    for s in scores:
+        covered = "too few folds" if s.coverage is None else format(s.coverage, ".1%")
+        print(f"{s.model:<16} {s.wape:>7.1%} {s.bias:>+8.1%} {covered:>16}")
+    return 0
 
 
 def _metric(name: str, by: Sequence[str], warehouse: Path, show_sql: bool) -> int:
@@ -100,6 +139,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     if args.command == "metric":
         return _metric(args.name, args.by, args.warehouse, args.sql)
+    if args.command == "forecast":
+        return _forecast(args)
     if args.command == "verify":
         problems = raw_zone.verify(args.out)
         for p in problems:

@@ -5,6 +5,12 @@ All notable changes are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Spend forecasting baselines with rolling-origin backtests and conformal prediction
+  intervals (`finops forecast`).
+- Daily anomaly detection per account, service and region against a median and MAD
+  baseline, scored against the anomalies planted in the synthetic history.
+
 ## [0.2.0] - 2026-11-11
 
 ### Added

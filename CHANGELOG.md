@@ -6,6 +6,9 @@ All notable changes are recorded here. The format follows
 ## [Unreleased]
 
 ### Added
+- Attribution of a change in spend to accounts, services, regions and SKUs
+  (`attribution.explain`), with an additive same-weekday baseline so the parts sum to
+  the total.
 - Spend forecasting baselines with rolling-origin backtests and conformal prediction
   intervals (`finops forecast`).
 - Daily anomaly detection per account, service and region against a median and MAD

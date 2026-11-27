@@ -11,7 +11,7 @@ items are done.
       BigQuery targets: staging, intermediate and mart layers; incremental daily cost
       fact with partitioning and clustering; tests and contracts; governed cost metrics
       reconciled to invoice totals.
-- [ ] **M3: Forecasting and anomalies** (Nov 11 to Nov 19). Per-service spend
+- [x] **M3: Forecasting and anomalies** (Nov 27). Per-service spend
       forecasting with rolling-origin backtests and prediction intervals; anomaly
       detection with attribution to service, account, region and SKU.
 - [ ] **M4: Commitments and accounts** (Nov 20 to Nov 27). Commitment planning as an

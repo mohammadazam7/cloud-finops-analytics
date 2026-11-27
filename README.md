@@ -7,8 +7,8 @@ format: where the money goes, where it is heading, why it moved, and how much a
 commitment would save.
 
 > **Status:** in development. FOCUS ingestion, the dbt cost models and the governed
-> metric layer are in place; forecasting and anomaly detection are being built, with
-> attribution of anomalies to their drivers next. See the
+> metric layer, forecasting, anomaly detection and attribution of a change in spend to
+> its drivers are in place; commitment planning is next. See the
 > [roadmap](docs/ROADMAP.md) for milestone dates.
 
 ## Results at a glance
@@ -33,6 +33,39 @@ cost rose and stayed up (CloudWatch in one account went from about 10 to 50 USD 
 the generator plants those as workloads moving between services, and they are worth an
 alert even though they are not spikes. The one planted anomaly it missed is on a series
 costing 0.22 USD a day, where the whole spike is under the 1 USD a day minimum excess.
+
+### Why did it move?
+
+`finops_analytics.attribution.explain` splits a change in spend between accounts,
+services, regions or SKUs. On the synthetic history, for the three days of the largest
+planted anomaly:
+
+```text
+2025-07-08 to 2025-07-10: 32,223.79 against 24,596.48 expected (+7,627.31), by account and service
+  100000000000 / Amazon Elastic Compute Cloud     +6,630.44   86.9% of the change
+  100000031676 / Amazon Elastic Compute Cloud       +280.34    3.7% of the change
+  100000039595 / Amazon Elastic Compute Cloud       +161.44    2.1% of the change
+  100000015838 / Amazon Elastic Compute Cloud       +146.78    1.9% of the change
+  121 others                                        +408.32
+```
+
+Each value is compared with its mean cost on the same weekdays in the previous 28 days.
+The mean is used because means add up, so the lines always sum to the total and nothing
+is left unexplained. The same weekday is used because spend has a weekly rhythm: against
+a plain four-week average, every weekend looks like a fall in the largest service.
+
+How well it points at the cause, measured on the 18 planted anomalies by asking what
+drove total spend on each one's days:
+
+| | Same-weekday baseline | Plain 28-day mean |
+|---|---|---|
+| Planted series is the top driver | 10 of 18 | 8 of 18 |
+| Planted anomalies of 100 USD or more in the top two | 11 of 11 | 11 of 11 |
+| Planted anomalies under 30 USD in the top five | 0 of 6 | 0 of 6 |
+
+Attribution answers what moved the total, so a 9 USD spike is buried under the ordinary
+movement of a service that costs thousands a day. Small anomalies are the detector's
+job, one series at a time; the two tools are meant to be used together.
 
 ## What this demonstrates
 
